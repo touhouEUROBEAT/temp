@@ -162,10 +162,12 @@ DATABASES = {
     }
 }
 
-CORS_ORIGIN_WHITELIST = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://132.249.242.127:80',
-    'http://132.249.242.127',
-]
+CORS_ORIGIN_ALLOW_ALL = True
+
+##CORS_ORIGIN_WHITELIST = [
+##    'http://localhost:3000',
+##    'http://127.0.0.1:3000',
+##    'http://132.249.242.127:80',
+##    'http://132.249.242.127',
+##]
 
