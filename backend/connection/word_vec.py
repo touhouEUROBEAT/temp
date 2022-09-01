@@ -1,71 +1,25 @@
-import pandas as pd
-import numpy as np
-import os
-import matplotlib.pyplot as plt
-import seaborn as sn
-import pickle
-
-# Import module to split the datasets
-from sklearn.model_selection import train_test_split
-# Import modules to evaluate the metrics
-from sklearn import metrics
-from sklearn.metrics import confusion_matrix, accuracy_score, roc_auc_score, roc_curve, auc
-from gensim.scripts.glove2word2vec import glove2word2vec
-from gensim.models import KeyedVectors
-
-import time
-
-import random
+from api.serializers import StudentSerializer
 from account.models import Student
 
-# Global parameters
-# root folder
-t = time.time()
-root_folder = '.'
-data_folder_name = 'data'
-glove_filename = '../../../temp/word_vec/glove.6B.50d.txt'
+from django.apps import apps
 
-train_filename = 'train.csv'
-# Variable for data directory
-DATA_PATH = os.path.abspath(os.path.join(root_folder, data_folder_name))
-glove_path = os.path.abspath(os.path.join(DATA_PATH, glove_filename))
+import ujson
+import redis
 
-# Both train and test set are in the root data directory
-train_path = DATA_PATH
-test_path = DATA_PATH
+ATTRIB = ('introvert', 'foody', 'chad', 'athletic', 'academic', 'UCSD')
 
-# Relevant columns
-TEXT_COLUMN = 'text'
-TARGET_COLUMN = 'target'
+def calc_attrib(glove, interests, attrib):
+    toReturn = dict.fromkeys(attrib)
 
-word2vec_output_file = glove_filename + '.word2vec'
-# glove2word2vec(glove_path, word2vec_output_file)
-
-# User attributes
-# Change nerdy to foody once on cloud instance and have better access to bigger datasets
-# Also, introduce UCSD score
-ATTRIBUTE = ('introvert', 'athletic', 'nerdy', 'chad', 'academics')
-
-print("start")
-model = KeyedVectors.load_word2vec_format(word2vec_output_file, binary=False)
-print("time takes to load model", time.time() - t)
-
-t = time.time()
-
-
-def calc_attrib(interests, attr=ATTRIBUTE):
-    toReturn = {}
-
-    for i in attr:
+    for i in attrib:
+        emb_attrib = glove.emb(i)
         for j in interests:
-            if not i in toReturn.keys():
-                try:
-                    toReturn[i] = model.similarity(i, j).item()
-                except:
-                    toReturn[i] = 0
-            else:
-                try:
-                    toReturn[i] += model.similarity(i, j).item()
-                except:
-                    toReturn[i] += 0
+            emb_interest = glove.emb(j)
+
+            temp = 0
+            for k in range(len(emb_interest)):
+                temp += emb_attrib[k] * emb_interest[k]
+
+        toReturn[i] = temp
+
     return toReturn
